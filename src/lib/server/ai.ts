@@ -1,13 +1,21 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { ANTHROPIC_API_KEY } from '$env/static/private';
-import type { ParsedEvent } from '$lib/types.js';
+import type { ParsedEvent, DateConstraints } from '$lib/types.js';
 
 const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
-export async function parseNaturalLanguage(input: string): Promise<ParsedEvent> {
+export async function parseNaturalLanguage(
+	input: string,
+	constraints?: DateConstraints
+): Promise<ParsedEvent> {
 	const today = new Date();
 	const todayStr = today.toISOString().split('T')[0];
 	const dayOfWeek = today.toLocaleDateString('en-US', { weekday: 'long' });
+
+	// Build constraint text for AI prompt
+	const constraintText = constraints
+		? `\n- Only suggest dates within the next ${constraints.maxWeeksAhead} weeks\n- Suggest at most ${constraints.maxDateOptions} date options`
+		: '';
 
 	const message = await client.messages.create({
 		model: 'claude-haiku-4-5-20251001',
@@ -37,7 +45,7 @@ Rules:
 - "this Thursday" means the Thursday of THIS week
 - Be generous with dates — when in doubt, include more options rather than fewer
 - Always return at least one date
-- Event name should be concise but descriptive`
+- Event name should be concise but descriptive${constraintText}`
 			}
 		]
 	});
@@ -46,5 +54,25 @@ Rules:
 	const jsonMatch = text.match(/\{[\s\S]*\}/);
 	if (!jsonMatch) throw new Error('Failed to parse AI response');
 
-	return JSON.parse(jsonMatch[0]) as ParsedEvent;
+	const parsed = JSON.parse(jsonMatch[0]) as ParsedEvent;
+
+	// Apply hard constraints if provided (post-processing filter)
+	if (constraints) {
+		// Calculate max date (today + maxWeeksAhead weeks)
+		const maxDate = new Date(today);
+		maxDate.setDate(maxDate.getDate() + constraints.maxWeeksAhead * 7);
+
+		// Filter dates: within range, sorted chronologically, limited to maxDateOptions
+		const filteredDates = parsed.dates
+			.filter((date) => {
+				const dateObj = new Date(date);
+				return dateObj >= today && dateObj <= maxDate;
+			})
+			.sort()
+			.slice(0, constraints.maxDateOptions);
+
+		return { ...parsed, dates: filteredDates };
+	}
+
+	return parsed;
 }

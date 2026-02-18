@@ -2,6 +2,7 @@ import { fail } from '@sveltejs/kit';
 import { parseNaturalLanguage } from '$lib/server/ai.js';
 import { createHit } from '$lib/server/robo.js';
 import { SENDER_NAME } from '$env/static/private';
+import type { DateConstraints } from '$lib/types.js';
 
 export const actions = {
 	parse: async ({ request }) => {
@@ -10,8 +11,17 @@ export const actions = {
 
 		if (!input?.trim()) return fail(400, { error: 'Please enter an event description' });
 
+		// Extract and validate date constraints
+		const maxWeeksAhead = parseInt(formData.get('maxWeeksAhead') as string) || 2;
+		const maxDateOptions = parseInt(formData.get('maxDateOptions') as string) || 10;
+
+		const constraints: DateConstraints = {
+			maxWeeksAhead: Math.max(1, Math.min(8, maxWeeksAhead)),
+			maxDateOptions: Math.max(3, Math.min(30, maxDateOptions))
+		};
+
 		try {
-			const parsed = await parseNaturalLanguage(input);
+			const parsed = await parseNaturalLanguage(input, constraints);
 			return { parsed, step: 'preview' as const };
 		} catch (e) {
 			console.error('Parse error:', e);

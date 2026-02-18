@@ -38,3 +38,8 @@ export interface TimeSlot {
 	totalParticipants: number;
 	score: number; // 0-1, ratio of available/total
 }
+
+export interface DateConstraints {
+	maxWeeksAhead: number; // 1-8 weeks
+	maxDateOptions: number; // 3-30 dates
+}
