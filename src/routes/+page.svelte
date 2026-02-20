@@ -120,9 +120,11 @@
 			</button>
 		</section>
 
-		<!-- Parsed preview -->
+		<!-- Parsed preview — keyed so local state resets when re-parsed -->
 		{#if form?.step === 'preview' && form.parsed}
-			<ParsedPreview event={form.parsed} />
+			{#key form.parsed}
+				<ParsedPreview event={form.parsed} />
+			{/key}
 		{/if}
 
 		<!-- Manual form -->

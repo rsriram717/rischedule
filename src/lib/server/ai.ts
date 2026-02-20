@@ -63,11 +63,10 @@ Rules:
 		maxDate.setDate(maxDate.getDate() + constraints.maxWeeksAhead * 7);
 
 		// Filter dates: within range, sorted chronologically, limited to maxDateOptions
+		// Compare as YYYY-MM-DD strings to avoid timezone offset issues with Date objects
+		const maxDateStr = maxDate.toISOString().split('T')[0];
 		const filteredDates = parsed.dates
-			.filter((date) => {
-				const dateObj = new Date(date);
-				return dateObj >= today && dateObj <= maxDate;
-			})
+			.filter((date) => date >= todayStr && date <= maxDateStr)
 			.sort()
 			.slice(0, constraints.maxDateOptions);
 

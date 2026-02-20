@@ -2,7 +2,8 @@
 	import { enhance } from '$app/forms';
 	import type { ParsedEvent } from '$lib/types.js';
 
-	let { event } = $props<{ event: ParsedEvent }>();
+	interface Props { event: ParsedEvent }
+	let { event }: Props = $props();
 
 	let loading = $state(false);
 
