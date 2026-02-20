@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { invalidateAll } from '$app/navigation';
+	import { page } from '$app/stores';
 	import HeatmapGrid from '$lib/components/HeatmapGrid.svelte';
 	import BestTime from '$lib/components/BestTime.svelte';
 	import ResponseList from '$lib/components/ResponseList.svelte';
@@ -10,6 +11,8 @@
 	let copied = $state(false);
 	let mode = $state<'organizing' | 'responding'>('responding');
 
+	const allParticipants = $derived(data.responses.map((r: { participant_name: string }) => r.participant_name));
+
 	function copyLink() {
 		if (data.shareLink) {
 			navigator.clipboard.writeText(data.shareLink);
@@ -18,8 +21,11 @@
 		}
 	}
 
-	// Auto-refresh every 10s
+	// Default to organizing mode when navigating from event creation
 	onMount(() => {
+		if ($page.url.searchParams.get('organizer') === '1') {
+			mode = 'organizing';
+		}
 		const interval = setInterval(() => invalidateAll(), 10000);
 		return () => clearInterval(interval);
 	});
@@ -113,7 +119,7 @@
 		<section>
 			<h2 class="mb-3 text-lg font-semibold text-gray-900">Availability</h2>
 			<div class="rounded-2xl border border-gray-200 bg-white p-4">
-				<HeatmapGrid slots={data.slots} />
+				<HeatmapGrid slots={data.slots} participants={allParticipants} />
 			</div>
 		</section>
 	{/if}

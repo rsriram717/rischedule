@@ -2,7 +2,9 @@
 	import { enhance } from '$app/forms';
 	import type { ParsedEvent } from '$lib/types.js';
 
-	let { event, loading = false } = $props<{ event: ParsedEvent; loading?: boolean }>();
+	let { event } = $props<{ event: ParsedEvent }>();
+
+	let loading = $state(false);
 
 	let name = $state(event.name);
 	let participants = $state(event.participants.join(', '));
@@ -18,7 +20,7 @@
 	}
 
 	function removeDate(index: number) {
-		dates = dates.filter((_, i) => i !== index);
+		dates = dates.filter((_: string, i: number) => i !== index);
 	}
 </script>
 
@@ -32,7 +34,13 @@
 		<h3 class="font-semibold text-gray-900">Parsed Event</h3>
 	</div>
 
-	<form method="POST" action="?/create" use:enhance>
+	<form method="POST" action="?/create" use:enhance={() => {
+		loading = true;
+		return async ({ update }) => {
+			await update();
+			loading = false;
+		};
+	}}>
 		<div class="space-y-3">
 			<div>
 				<label for="name" class="mb-1 block text-sm font-medium text-gray-600">Event Name</label>

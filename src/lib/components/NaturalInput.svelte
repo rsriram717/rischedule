@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 
-	let { loading = false } = $props();
 	let input = $state('');
+	let loading = $state(false);
 	let showAdvanced = $state(false);
 	let maxWeeksAhead = $state(2);
 	let maxDateOptions = $state(10);
@@ -11,9 +11,13 @@
 </script>
 
 <form method="POST" action="?/parse" use:enhance={() => {
-	return async ({ update }) => {
+	loading = true;
+	return async ({ update, result }) => {
 		await update();
-		input = '';
+		loading = false;
+		if (result.type === 'success') {
+			input = '';
+		}
 	};
 }}>
 	<div class="space-y-3">

@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { TimeSlot } from '$lib/types.js';
 
-	let { slots, participants = [] } = $props<{ slots: TimeSlot[]; participants?: string[] }>();
+	interface Props { slots: TimeSlot[]; participants?: string[] }
+	let { slots, participants = [] }: Props = $props();
 
 	function formatDate(iso: string) {
 		return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {

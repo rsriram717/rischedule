@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import NaturalInput from '$lib/components/NaturalInput.svelte';
 	import ParsedPreview from '$lib/components/ParsedPreview.svelte';
@@ -13,8 +12,6 @@
 	let searchCode = $state('');
 	let searchError = $state('');
 	let myEvents = $state<Array<{ code: string; name: string; createdAt: string }>>([]);
-
-	const loading = $derived($page.status === 0);
 
 	onMount(() => {
 		const stored = localStorage.getItem('rischedule_events');
@@ -78,12 +75,11 @@
 				Share this link with participants so they can mark their availability:
 			</p>
 
-			{#if form.created.url || form.created.link || form.created.hit_url}
-				{@const link = form.created.url || form.created.link || form.created.hit_url}
+			{#if form.created.url}
 				<div class="flex items-center gap-2 rounded-lg bg-white p-3 border border-emerald-200">
-					<code class="flex-1 truncate text-sm text-gray-700">{link}</code>
+					<code class="flex-1 truncate text-sm text-gray-700">{form.created.url}</code>
 					<button
-						onclick={() => copyLink(link)}
+						onclick={() => copyLink(form!.created!.url)}
 						class="shrink-0 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
 					>
 						{copied ? 'Copied!' : 'Copy'}
@@ -94,41 +90,48 @@
 			{#if form.created.hit_id}
 				<p class="mt-3 text-sm text-emerald-700">
 					Event code: <code class="rounded bg-emerald-100 px-2 py-0.5 font-mono font-semibold">{form.created.hit_id}</code>
-					&mdash; <a href="/{form.created.hit_id}" class="underline">view results</a>
+					&mdash; <a href="/{form.created.hit_id}?organizer=1" class="underline">view results</a>
 				</p>
 			{/if}
+
+			<button
+				onclick={() => goto('/')}
+				class="mt-4 text-sm text-emerald-700 underline hover:text-emerald-900"
+			>
+				Create another event
+			</button>
 		</div>
-	{/if}
+	{:else}
+		<!-- NL Input -->
+		<section>
+			<h1 class="mb-2 text-2xl font-bold text-gray-900">Schedule something</h1>
+			<p class="mb-4 text-gray-500">Describe your event in natural language</p>
+			<NaturalInput />
 
-	<!-- NL Input -->
-	<section>
-		<h1 class="mb-2 text-2xl font-bold text-gray-900">Schedule something</h1>
-		<p class="mb-4 text-gray-500">Describe your event in natural language</p>
-		<NaturalInput {loading} />
+			{#if form?.error}
+				<p class="mt-2 text-sm text-red-600">{form.error}</p>
+			{/if}
 
-		{#if form?.error}
-			<p class="mt-2 text-sm text-red-600">{form.error}</p>
+			<button
+				onclick={() => (showManual = !showManual)}
+				class="mt-3 text-sm text-gray-500 hover:text-indigo-600"
+			>
+				{showManual ? 'Hide manual form' : 'Or create manually'}
+			</button>
+		</section>
+
+		<!-- Parsed preview -->
+		{#if form?.step === 'preview' && form.parsed}
+			<ParsedPreview event={form.parsed} />
 		{/if}
 
-		<button
-			onclick={() => (showManual = !showManual)}
-			class="mt-3 text-sm text-gray-500 hover:text-indigo-600"
-		>
-			{showManual ? 'Hide manual form' : 'Or create manually'}
-		</button>
-	</section>
-
-	<!-- Parsed preview -->
-	{#if form?.step === 'preview' && form.parsed}
-		<ParsedPreview event={form.parsed} />
+		<!-- Manual form -->
+		{#if showManual}
+			<ManualForm />
+		{/if}
 	{/if}
 
-	<!-- Manual form -->
-	{#if showManual}
-		<ManualForm {loading} />
-	{/if}
-
-	<!-- Lookup event -->
+	<!-- Lookup event (always visible) -->
 	<section>
 		<h2 class="mb-3 text-lg font-semibold text-gray-900">Look up an event</h2>
 		<div class="flex gap-2">

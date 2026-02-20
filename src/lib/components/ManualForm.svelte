@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 
-	let { loading = false } = $props();
+	let loading = $state(false);
 
 	let name = $state('');
 	let participants = $state('');
@@ -21,7 +21,13 @@
 	}
 </script>
 
-<form method="POST" action="?/create" use:enhance class="rounded-2xl border border-gray-200 bg-white p-6">
+<form method="POST" action="?/create" use:enhance={() => {
+	loading = true;
+	return async ({ update }) => {
+		await update();
+		loading = false;
+	};
+}} class="rounded-2xl border border-gray-200 bg-white p-6">
 	<h3 class="mb-4 font-semibold text-gray-900">Create Event Manually</h3>
 
 	<div class="space-y-4">
