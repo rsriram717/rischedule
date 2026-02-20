@@ -1,7 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import { parseNaturalLanguage } from '$lib/server/ai.js';
-import { createHit } from '$lib/server/robo.js';
-import { SENDER_NAME } from '$env/static/private';
+import { createEvent } from '$lib/server/db.js';
 import type { DateConstraints } from '$lib/types.js';
 
 export const actions = {
@@ -11,7 +10,6 @@ export const actions = {
 
 		if (!input?.trim()) return fail(400, { error: 'Please enter an event description' });
 
-		// Extract and validate date constraints
 		const maxWeeksAhead = parseInt(formData.get('maxWeeksAhead') as string) || 2;
 		const maxDateOptions = parseInt(formData.get('maxDateOptions') as string) || 10;
 
@@ -29,7 +27,7 @@ export const actions = {
 		}
 	},
 
-	create: async ({ request }) => {
+	create: async ({ request, url }) => {
 		const formData = await request.formData();
 		const name = formData.get('name') as string;
 		const participantsRaw = formData.get('participants') as string;
@@ -42,21 +40,15 @@ export const actions = {
 		if (!name?.trim()) return fail(400, { error: 'Event name is required' });
 		if (dates.length === 0) return fail(400, { error: 'At least one date is required' });
 
-		const taskDescription = `[${name}] Available dates: ${dates.join(', ')}${timePreference && timePreference !== 'any' ? `. Preferred time: ${timePreference}` : ''}`;
-
 		try {
-			const result = await createHit({
-				task_description: taskDescription,
-				distribution_mode: participants.length > 0 ? 'group' : 'open',
-				hit_type: 'availability',
-				participants: participants.length > 0 ? participants : undefined,
-				sender_name: SENDER_NAME,
-				config: {
-					date_options: dates
-				}
+			const { code } = await createEvent({
+				name,
+				dates,
+				timePreference: timePreference && timePreference !== 'any' ? timePreference : undefined
 			});
 
-			return { created: { ...result, name }, step: 'success' as const };
+			const shareUrl = `${url.origin}/respond/${code}`;
+			return { created: { url: shareUrl, hit_id: code, name }, step: 'success' as const };
 		} catch (e) {
 			console.error('Create error:', e);
 			return fail(500, { error: 'Failed to create event. Please try again.' });

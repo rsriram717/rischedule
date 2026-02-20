@@ -46,12 +46,3 @@ function isAvailableForDate(data: Record<string, unknown>, date: string): boolea
 	return false;
 }
 
-export function extractDatesFromDescription(description: string): string[] {
-	const datePattern = /\d{4}-\d{2}-\d{2}/g;
-	return description.match(datePattern) || [];
-}
-
-export function parseEventName(taskDescription: string): string {
-	const match = taskDescription.match(/^\[(.+?)\]/);
-	return match ? match[1] : taskDescription.slice(0, 50);
-}
