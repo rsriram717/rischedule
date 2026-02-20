@@ -8,6 +8,7 @@
 	let { form } = $props();
 
 	let showManual = $state(false);
+	let dismissed = $state(false);
 	let copied = $state(false);
 	let searchCode = $state('');
 	let searchError = $state('');
@@ -49,18 +50,19 @@
 		goto(`/${code}`);
 	}
 
-	// Save newly created event to localStorage
+	// Save newly created event and reset dismissed state on each new success
 	$effect(() => {
 		if (form?.step === 'success' && form.created?.hit_id) {
 			const name = form.created.name || 'My Event';
 			saveEvent(form.created.hit_id, name);
+			dismissed = false;
 		}
 	});
 </script>
 
 <div class="space-y-8">
 	<!-- Success state -->
-	{#if form?.step === 'success' && form.created}
+	{#if form?.step === 'success' && form.created && !dismissed}
 		<div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
 			<div class="mb-3 flex items-center gap-2">
 				<div class="rounded-lg bg-emerald-200 p-1.5 text-emerald-700">
@@ -95,7 +97,7 @@
 			{/if}
 
 			<button
-				onclick={() => goto('/')}
+				onclick={() => (dismissed = true)}
 				class="mt-4 text-sm text-emerald-700 underline hover:text-emerald-900"
 			>
 				Create another event
