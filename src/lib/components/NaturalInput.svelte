@@ -4,7 +4,7 @@
 	let input = $state('');
 	let loading = $state(false);
 	let showAdvanced = $state(false);
-	let maxWeeksAhead = $state(2);
+	let maxWeeksAhead = $state(5);
 	let maxDateOptions = $state(10);
 	let isDraggingWeeks = $state(false);
 	let isDraggingDates = $state(false);
@@ -107,7 +107,7 @@
 
 				<button
 					type="button"
-					onclick={() => { maxWeeksAhead = 2; maxDateOptions = 10; }}
+					onclick={() => { maxWeeksAhead = 5; maxDateOptions = 10; }}
 					disabled={loading}
 					class="text-sm text-indigo-600 hover:text-indigo-700 transition-all hover:underline active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
 				>

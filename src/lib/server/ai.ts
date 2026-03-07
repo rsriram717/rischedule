@@ -14,7 +14,7 @@ export async function parseNaturalLanguage(
 
 	// Build constraint text for AI prompt
 	const constraintText = constraints
-		? `\n- Only suggest dates within the next ${constraints.maxWeeksAhead} weeks\n- Suggest at most ${constraints.maxDateOptions} date options`
+		? `\n- Unless the user explicitly requests a specific time range, prefer dates within the next ${constraints.maxWeeksAhead} weeks\n- Suggest at most ${constraints.maxDateOptions} date options`
 		: '';
 
 	const message = await client.messages.create({
@@ -39,10 +39,12 @@ Return ONLY valid JSON with this schema:
 Rules:
 - If no participants are mentioned, return an empty array
 - If no specific dates mentioned, suggest the next 5 weekdays (Mon-Fri)
+- For social, gaming, casual, or group hangout events (e.g. D&D, dinner, game night, party), prefer weekends (Sat/Sun) unless weekdays are explicitly requested
 - "next week" means all 5 weekdays of the following week
 - "this week" means all remaining weekdays of the current week
 - "next Thursday" means the Thursday of NEXT week, not this week
 - "this Thursday" means the Thursday of THIS week
+- If the user specifies a time range (e.g. "3-5 weeks from now", "next month"), generate dates WITHIN that range — do not substitute closer dates
 - Be generous with dates — when in doubt, include more options rather than fewer
 - Always return at least one date
 - Event name should be concise but descriptive${constraintText}`

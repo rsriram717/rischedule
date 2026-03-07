@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import type { ParsedEvent } from '$lib/types.js';
+	import DatePicker from './DatePicker.svelte';
 
 	interface Props { event: ParsedEvent }
 	let { event }: Props = $props();
@@ -11,18 +12,6 @@
 	let participants = $state(event.participants.join(', '));
 	let dates = $state(event.dates);
 	let timePreference = $state(event.timePreference || 'any');
-
-	function formatDate(iso: string) {
-		return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {
-			weekday: 'short',
-			month: 'short',
-			day: 'numeric'
-		});
-	}
-
-	function removeDate(index: number) {
-		dates = dates.filter((_: string, i: number) => i !== index);
-	}
 </script>
 
 <div class="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-6">
@@ -67,15 +56,8 @@
 			</div>
 
 			<div>
-				<label class="mb-1 block text-sm font-medium text-gray-600">Dates</label>
-				<div class="flex flex-wrap gap-2">
-					{#each dates as date, i}
-						<span class="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-sm border border-gray-200">
-							{formatDate(date)}
-							<button type="button" onclick={() => removeDate(i)} class="ml-1 text-gray-400 hover:text-red-500">&times;</button>
-						</span>
-					{/each}
-				</div>
+				<label class="mb-2 block text-sm font-medium text-gray-600">Dates</label>
+				<DatePicker bind:dates />
 				<input type="hidden" name="dates" value={JSON.stringify(dates)} />
 			</div>
 
