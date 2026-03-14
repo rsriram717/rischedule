@@ -15,7 +15,7 @@
 
 	function copyLink() {
 		if (data.shareLink) {
-			navigator.clipboard.writeText(data.shareLink);
+			navigator.clipboard.writeText(window.location.origin + data.shareLink);
 			copied = true;
 			setTimeout(() => (copied = false), 2000);
 		}
@@ -77,14 +77,9 @@
 			<p class="mb-3 text-sm font-medium text-gray-700">Fill out your availability:</p>
 			<a
 				href={data.shareLink}
-				target="_blank"
-				rel="noopener"
 				class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-700"
 			>
 				Open availability form
-				<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-					<path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-				</svg>
 			</a>
 			<p class="mt-3 text-xs text-indigo-600">
 				Your event code is <code class="rounded bg-indigo-100 px-1.5 py-0.5 font-mono font-semibold">{data.code}</code> — save it to check results later at <a href="/" class="underline">rischedule</a>
@@ -97,7 +92,7 @@
 		<div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
 			<p class="mb-3 text-sm font-medium text-emerald-800">Share this link with participants:</p>
 			<div class="flex items-center gap-2 rounded-lg bg-white p-3 border border-emerald-200">
-				<code class="flex-1 truncate text-sm text-gray-700">{data.shareLink}</code>
+				<code class="flex-1 truncate text-sm text-gray-700">{typeof window !== 'undefined' ? window.location.origin : ''}{data.shareLink}</code>
 				<button
 					onclick={copyLink}
 					class="shrink-0 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"

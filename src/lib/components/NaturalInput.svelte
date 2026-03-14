@@ -23,7 +23,7 @@
 				name="input"
 				type="text"
 				bind:value={input}
-				placeholder="e.g. Carwash with Matt, next Thu or Fri"
+				placeholder="e.g. Dinner with Rishi next week"
 				class="w-full rounded-2xl border border-gray-200 bg-white px-5 py-4 pr-24 text-lg shadow-sm transition-shadow focus:border-indigo-400 focus:shadow-md focus:outline-none"
 				disabled={loading}
 			/>

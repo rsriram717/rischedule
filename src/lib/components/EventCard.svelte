@@ -1,5 +1,11 @@
 <script lang="ts">
-	import type { EventSummary } from '$lib/types.js';
+	type EventSummary = {
+		hitId: string;
+		name: string;
+		responseCount: number;
+		createdAt: string;
+		shareLink?: string;
+	};
 
 	let { event } = $props<{ event: EventSummary }>();
 

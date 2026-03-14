@@ -6,30 +6,19 @@ export interface ParsedEvent {
 	description?: string;
 }
 
-export interface RoboHit {
-	hit_id: string;
-	task_description: string;
-	distribution_mode: string;
-	status: string;
-	created_at: string;
-	responses: RoboResponse[];
-	links?: Record<string, string>;
-}
-
-export interface RoboResponse {
-	participant_name: string;
-	response_data: Record<string, unknown>;
-	responded_at: string;
-}
-
-export interface EventSummary {
-	hitId: string;
+export interface StoredEvent {
+	code: string;
 	name: string;
-	description: string;
-	responseCount: number;
-	participantCount: number;
+	dates: string[];
+	participants?: string[];
+	timePreference?: string;
 	createdAt: string;
-	shareLink?: string;
+}
+
+export interface StoredResponse {
+	name: string;
+	availability: Record<string, boolean>; // { "2026-03-15": true }
+	submittedAt: string;
 }
 
 export interface TimeSlot {

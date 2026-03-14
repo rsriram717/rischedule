@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import NaturalInput from '$lib/components/NaturalInput.svelte';
 	import ParsedPreview from '$lib/components/ParsedPreview.svelte';
 	import ManualForm from '$lib/components/ManualForm.svelte';
@@ -52,9 +52,10 @@
 
 	// Save newly created event and reset dismissed state on each new success
 	$effect(() => {
-		if (form?.step === 'success' && form.created?.hit_id) {
+		if (form?.step === 'success' && form.created?.code) {
+			const code = form.created.code;
 			const name = form.created.name || 'My Event';
-			saveEvent(form.created.hit_id, name);
+			untrack(() => saveEvent(code, name));
 			dismissed = false;
 		}
 	});
@@ -77,22 +78,20 @@
 				Share this link with participants so they can mark their availability:
 			</p>
 
-			{#if form.created.url}
+			{#if form.created.code}
+				{@const respondUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/respond/${form.created.code}`}
 				<div class="flex items-center gap-2 rounded-lg bg-white p-3 border border-emerald-200">
-					<code class="flex-1 truncate text-sm text-gray-700">{form.created.url}</code>
+					<code class="flex-1 truncate text-sm text-gray-700">{respondUrl}</code>
 					<button
-						onclick={() => copyLink(form!.created!.url)}
+						onclick={() => copyLink(respondUrl)}
 						class="shrink-0 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
 					>
 						{copied ? 'Copied!' : 'Copy'}
 					</button>
 				</div>
-			{/if}
-
-			{#if form.created.hit_id}
 				<p class="mt-3 text-sm text-emerald-700">
-					Event code: <code class="rounded bg-emerald-100 px-2 py-0.5 font-mono font-semibold">{form.created.hit_id}</code>
-					&mdash; <a href="/{form.created.hit_id}?organizer=1" class="underline">view results</a>
+					Event code: <code class="rounded bg-emerald-100 px-2 py-0.5 font-mono font-semibold">{form.created.code}</code>
+					&mdash; <a href="/{form.created.code}?organizer=1" class="underline">view results</a>
 				</p>
 			{/if}
 

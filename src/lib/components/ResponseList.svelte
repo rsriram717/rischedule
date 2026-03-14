@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { RoboResponse } from '$lib/types.js';
+	type MappedResponse = { participant_name: string; response_data: Record<string, boolean>; responded_at: string };
 
-	let { responses } = $props<{ responses: RoboResponse[] }>();
+	let { responses } = $props<{ responses: MappedResponse[] }>();
 
 	let expanded = $state<string | null>(null);
 

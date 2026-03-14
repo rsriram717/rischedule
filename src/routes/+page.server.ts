@@ -1,7 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import { parseNaturalLanguage } from '$lib/server/ai.js';
-import { createHit } from '$lib/server/robo.js';
-import { SENDER_NAME } from '$env/static/private';
+import { createEvent } from '$lib/server/blob.js';
 import type { DateConstraints } from '$lib/types.js';
 
 export const actions = {
@@ -32,31 +31,25 @@ export const actions = {
 	create: async ({ request }) => {
 		const formData = await request.formData();
 		const name = formData.get('name') as string;
-		const participantsRaw = formData.get('participants') as string;
+		const dates: string[] = JSON.parse(formData.get('dates') as string);
+		const timePreference = formData.get('timePreference') as string | null;
+		const participantsRaw = formData.get('participants') as string | null;
 		const participants = participantsRaw
 			? participantsRaw.split(',').map((p) => p.trim()).filter(Boolean)
 			: [];
-		const dates: string[] = JSON.parse(formData.get('dates') as string);
-		const timePreference = formData.get('timePreference') as string;
 
 		if (!name?.trim()) return fail(400, { error: 'Event name is required' });
 		if (dates.length === 0) return fail(400, { error: 'At least one date is required' });
 
-		const taskDescription = `[${name}] Available dates: ${dates.join(', ')}${timePreference && timePreference !== 'any' ? `. Preferred time: ${timePreference}` : ''}`;
-
 		try {
-			const result = await createHit({
-				task_description: taskDescription,
-				distribution_mode: participants.length > 0 ? 'group' : 'open',
-				hit_type: 'availability',
+			const code = await createEvent({
+				name,
+				dates,
 				participants: participants.length > 0 ? participants : undefined,
-				sender_name: SENDER_NAME,
-				config: {
-					date_options: dates
-				}
+				timePreference: timePreference || undefined
 			});
 
-			return { created: { ...result, name }, step: 'success' as const };
+			return { created: { code, name }, step: 'success' as const };
 		} catch (e) {
 			console.error('Create error:', e);
 			return fail(500, { error: 'Failed to create event. Please try again.' });
