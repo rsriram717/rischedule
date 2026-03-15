@@ -48,34 +48,31 @@ export async function getEvent(code: string): Promise<StoredEvent | null> {
 }
 
 export async function getResponses(code: string): Promise<StoredResponse[]> {
-	const url = await getBlobUrl(`responses/${code}.json`);
-	if (!url) return [];
-	const res = await fetchBlob(url);
-	if (!res.ok) return [];
-	return res.json();
+	const { blobs } = await list({ prefix: `responses/${code}/`, token });
+	if (blobs.length === 0) return [];
+	const results = await Promise.all(blobs.map((b) => fetchBlob(b.url).then((r) => r.json())));
+	return results;
 }
 
 export async function addResponse(
 	code: string,
 	resp: { name: string; availability: Record<string, boolean> }
 ): Promise<void> {
-	const existing = await getResponses(code);
-	const updated: StoredResponse[] = [
-		...existing,
-		{ name: resp.name, availability: resp.availability, submittedAt: new Date().toISOString() }
-	];
-	await put(`responses/${code}.json`, JSON.stringify(updated), {
+	const submittedAt = new Date().toISOString();
+	const id = crypto.randomUUID().slice(0, 8);
+	const response: StoredResponse = { name: resp.name, availability: resp.availability, submittedAt };
+	await put(`responses/${code}/${submittedAt}-${id}.json`, JSON.stringify(response), {
 		access: 'private',
 		addRandomSuffix: false,
-		allowOverwrite: true,
+		allowOverwrite: false,
 		token
 	});
 }
 
 export async function deleteEvent(code: string): Promise<void> {
 	const eventUrl = await getBlobUrl(`events/${code}.json`);
-	const responsesUrl = await getBlobUrl(`responses/${code}.json`);
-	const toDelete = [eventUrl, responsesUrl].filter(Boolean) as string[];
+	const { blobs: responseBlobs } = await list({ prefix: `responses/${code}/`, token });
+	const toDelete = [eventUrl, ...responseBlobs.map((b) => b.url)].filter(Boolean) as string[];
 	if (toDelete.length > 0) await del(toDelete, { token });
 }
 
