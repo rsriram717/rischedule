@@ -11,7 +11,20 @@
 	let name = $state(event.name);
 	let participants = $state(event.participants.join(', '));
 	let dates = $state(event.dates);
-	let timePreference = $state(event.timePreference || 'any');
+	let timeSlots = $state<Record<string, string[]>>(event.timeSlots ?? {});
+
+	const times = ['morning', 'afternoon', 'evening'];
+
+	function toggle(date: string, time: string) {
+		const current = timeSlots[date] ?? [];
+		timeSlots[date] = current.includes(time)
+			? current.filter((t) => t !== time)
+			: [...current, time];
+	}
+
+	function hasTime(date: string, time: string) {
+		return (timeSlots[date] ?? []).includes(time);
+	}
 </script>
 
 <div class="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-6">
@@ -62,19 +75,34 @@
 			</div>
 
 			<div>
-				<label for="timePref" class="mb-1 block text-sm font-medium text-gray-600">Time Preference</label>
-				<select
-					id="timePref"
-					name="timePreference"
-					bind:value={timePreference}
-					class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none"
-				>
-					<option value="any">Any time</option>
-					<option value="morning">Morning</option>
-					<option value="afternoon">Afternoon</option>
-					<option value="evening">Evening</option>
-				</select>
+				<div class="mb-2 flex items-baseline justify-between">
+					<span class="text-sm font-medium text-gray-600">Time slots <span class="font-normal text-gray-400">(optional)</span></span>
+					{#if Object.values(timeSlots).some(v => v.length > 0)}
+						<button type="button" onclick={() => timeSlots = {}} class="text-xs text-gray-400 hover:text-gray-600">Clear all</button>
+					{/if}
+				</div>
+				<div class="space-y-2">
+					{#each dates as date}
+						{@const label = new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+						<div class="flex items-center gap-3">
+							<span class="w-28 text-sm text-gray-600">{label}</span>
+							<div class="flex gap-1.5">
+								{#each times as time}
+									<button
+										type="button"
+										onclick={() => toggle(date, time)}
+										class="rounded-lg px-3 py-1 text-xs font-medium border transition-colors {hasTime(date, time) ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-500 border-gray-200 hover:border-indigo-300 hover:text-indigo-600'}"
+									>
+										{time[0].toUpperCase() + time.slice(1)}
+									</button>
+								{/each}
+							</div>
+						</div>
+					{/each}
+				</div>
+				<input type="hidden" name="timeSlots" value={JSON.stringify(timeSlots)} />
 			</div>
+
 		</div>
 
 		<div class="mt-5 flex gap-3">

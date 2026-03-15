@@ -1,6 +1,7 @@
 import { error } from '@sveltejs/kit';
 import { getEvent, getResponses, deleteEvent, isExpired } from '$lib/server/blob.js';
 import { findBestTimes } from '$lib/server/scheduler.js';
+import { getSlotKeys } from '$lib/types.js';
 
 export async function load({ params }) {
 	const event = await getEvent(params.code);
@@ -23,7 +24,7 @@ export async function load({ params }) {
 		responded_at: r.submittedAt
 	}));
 
-	const slots = findBestTimes(storedResponses, event.dates);
+	const slots = findBestTimes(storedResponses, getSlotKeys(event.dates, event.timeSlots));
 	const bestSlot = slots.length > 0 && slots[0].availableParticipants.length > 0 ? slots[0] : null;
 
 	return {

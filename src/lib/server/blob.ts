@@ -18,6 +18,7 @@ export async function createEvent(opts: {
 	dates: string[];
 	participants?: string[];
 	timePreference?: string;
+	timeSlots?: Record<string, string[]>;
 }): Promise<string> {
 	const code = crypto.randomUUID().slice(0, 8);
 	const event: StoredEvent = {
@@ -26,6 +27,7 @@ export async function createEvent(opts: {
 		dates: opts.dates,
 		participants: opts.participants,
 		timePreference: opts.timePreference,
+		timeSlots: opts.timeSlots,
 		createdAt: new Date().toISOString()
 	};
 	await put(`events/${code}.json`, JSON.stringify(event), {

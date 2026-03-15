@@ -4,12 +4,16 @@
 	interface Props { slots: TimeSlot[]; participants?: string[] }
 	let { slots, participants = [] }: Props = $props();
 
-	function formatDate(iso: string) {
-		return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {
+	function formatSlotKey(key: string) {
+		const [datePart, timePart] = key.split('_');
+		const dateLabel = new Date(datePart + 'T12:00:00').toLocaleDateString('en-US', {
 			weekday: 'short',
 			month: 'short',
 			day: 'numeric'
 		});
+		return timePart
+			? `${dateLabel} · ${timePart[0].toUpperCase() + timePart.slice(1)}`
+			: dateLabel;
 	}
 
 	function cellColor(isAvailable: boolean, isBestDate: boolean) {
@@ -36,7 +40,7 @@
 			<div class="p-2"></div>
 			{#each sortedSlots as slot}
 				<div class="rounded-t-lg p-2 text-center text-xs font-medium text-gray-600 {slot.date === bestDate ? 'bg-amber-50' : ''}">
-					{formatDate(slot.date)}
+					{formatSlotKey(slot.date)}
 				</div>
 			{/each}
 

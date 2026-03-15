@@ -33,6 +33,8 @@ export const actions = {
 		const name = formData.get('name') as string;
 		const dates: string[] = JSON.parse(formData.get('dates') as string);
 		const timePreference = formData.get('timePreference') as string | null;
+		const timeSlotsRaw = formData.get('timeSlots') as string | null;
+		const timeSlots = timeSlotsRaw ? JSON.parse(timeSlotsRaw) as Record<string, string[]> : undefined;
 		const participantsRaw = formData.get('participants') as string | null;
 		const participants = participantsRaw
 			? participantsRaw.split(',').map((p) => p.trim()).filter(Boolean)
@@ -46,7 +48,8 @@ export const actions = {
 				name,
 				dates,
 				participants: participants.length > 0 ? participants : undefined,
-				timePreference: timePreference || undefined
+				timePreference: timePreference || undefined,
+				timeSlots: timeSlots && Object.keys(timeSlots).length > 0 ? timeSlots : undefined
 			});
 
 			return { created: { code, name }, step: 'success' as const };

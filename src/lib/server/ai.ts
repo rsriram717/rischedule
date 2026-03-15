@@ -33,6 +33,11 @@ Return ONLY valid JSON with this schema:
   "participants": ["list of participant names mentioned"],
   "dates": ["YYYY-MM-DD format, resolve relative dates like 'next Thursday' to actual dates"],
   "timePreference": "morning|afternoon|evening|any (optional, infer from context)",
+  "timeSlots": {
+    "YYYY-MM-DD": ["morning"|"afternoon"|"evening"]
+    // only include dates where a specific time was mentioned for that date
+    // omit the key entirely if no time was mentioned for that date
+  },
   "description": "brief description if any extra context was given (optional)"
 }
 
@@ -58,6 +63,14 @@ Rules:
 
 	const parsed = JSON.parse(jsonMatch[0]) as ParsedEvent;
 
+	// Backfill timeSlots from event-wide timePreference if no per-date times were extracted
+	if ((!parsed.timeSlots || Object.keys(parsed.timeSlots).length === 0) &&
+		parsed.timePreference && parsed.timePreference !== 'any') {
+		parsed.timeSlots = Object.fromEntries(
+			parsed.dates.map((d) => [d, [parsed.timePreference!]])
+		);
+	}
+
 	// Apply hard constraints if provided (post-processing filter)
 	if (constraints) {
 		// Calculate max date (today + maxWeeksAhead weeks)
@@ -72,7 +85,14 @@ Rules:
 			.sort()
 			.slice(0, constraints.maxDateOptions);
 
-		return { ...parsed, dates: filteredDates };
+		// Also filter timeSlots to only include kept dates
+		const filteredTimeSlots = parsed.timeSlots
+			? Object.fromEntries(
+				Object.entries(parsed.timeSlots).filter(([d]) => filteredDates.includes(d))
+			)
+			: undefined;
+
+		return { ...parsed, dates: filteredDates, timeSlots: filteredTimeSlots };
 	}
 
 	return parsed;

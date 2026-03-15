@@ -3,12 +3,16 @@
 
 	let { slot } = $props<{ slot: TimeSlot | null }>();
 
-	function formatDate(iso: string) {
-		return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', {
+	function formatSlotKey(key: string) {
+		const [datePart, timePart] = key.split('_');
+		const dateLabel = new Date(datePart + 'T12:00:00').toLocaleDateString('en-US', {
 			weekday: 'long',
 			month: 'long',
 			day: 'numeric'
 		});
+		return timePart
+			? `${dateLabel} · ${timePart[0].toUpperCase() + timePart.slice(1)}`
+			: dateLabel;
 	}
 </script>
 
@@ -22,7 +26,7 @@
 			</div>
 			<div>
 				<p class="text-sm font-medium text-amber-800">Best time</p>
-				<p class="text-lg font-bold text-amber-900">{formatDate(slot.date)}</p>
+				<p class="text-lg font-bold text-amber-900">{formatSlotKey(slot.date)}</p>
 				<p class="text-sm text-amber-700">
 					{slot.availableParticipants.length} of {slot.totalParticipants} available
 					({Math.round(slot.score * 100)}%)

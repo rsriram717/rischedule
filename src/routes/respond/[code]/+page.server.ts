@@ -1,5 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import { getEvent, addResponse, isExpired } from '$lib/server/blob.js';
+import { getSlotKeys } from '$lib/types.js';
 
 export async function load({ params }) {
 	const event = await getEvent(params.code);
@@ -23,9 +24,10 @@ export const actions = {
 
 		if (!name) return fail(400, { error: 'Your name is required' });
 
+		const slotKeys = getSlotKeys(event.dates, event.timeSlots);
 		const availability: Record<string, boolean> = {};
-		for (const date of event.dates) {
-			availability[date] = formData.get(`date_${date}`) === 'on';
+		for (const key of slotKeys) {
+			availability[key] = formData.get(`date_${key}`) === 'on';
 		}
 
 		await addResponse(params.code, { name, availability });
